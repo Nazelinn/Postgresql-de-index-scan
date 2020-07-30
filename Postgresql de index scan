@@ -1,0 +1,13 @@
+CREATE VIEW "public"."index_scan" AS  SELECT s.schemaname,
+    s.relname AS tablename,
+    s.indexrelname AS indexname,
+    pg_size_pretty(pg_relation_size((s.indexrelid)::regclass)) AS index_size,
+    s.idx_scan
+   FROM (pg_stat_user_indexes s
+     JOIN pg_index i ON ((s.indexrelid = i.indexrelid)))
+  WHERE ((NOT i.indisunique) AND (NOT (EXISTS ( SELECT 1
+           FROM pg_constraint c
+          WHERE (c.conindid = s.indexrelid)))))
+  ORDER BY (pg_relation_size((s.indexrelid)::regclass)) DESC;
+
+ALTER TABLE "public"."index_scan" OWNER TO "postgres";
